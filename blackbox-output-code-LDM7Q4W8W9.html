@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelPlanner - Planificador de Viajes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .cheapest { background-color: #d4edda; font-weight: bold; }
+        button { padding: 10px; margin: 10px 0; }
+        #alert { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>TravelPlanner: Planifica tu Viaje con los Mejores Precios</h1>
+    <p>Ingresa un destino y obtén sugerencias de recorridos, comida, hoteles y vuelos. Priorizamos el precio más barato.</p>
+    
+    <label>Destino: <input type="text" id="destination" placeholder="Ej. París"></label><br>
+    <button onclick="planTrip()">Planificar Viaje</button>
+    <button onclick="startMonitoring()">Iniciar Monitoreo de Precios</button>
+    
+    <div id="alert"></div>
+    
+    <div class="section">
+        <h2>Recorridos Turísticos</h2>
+        <table id="toursTable">
+            <thead><tr><th>Recorrido</th><th>Precio ($)</th><th>Duración</th></tr></thead>
+            <tbody id="toursBody"></tbody>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Lugares de Comida</h2>
+        <table id="foodTable">
+            <thead><tr><th>Restaurante</th><th>Precio ($)</th><th>Calificación</th></tr></thead>
+            <tbody id="foodBody"></tbody>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Habitaciones de Hotel</h2>
+        <table id="hotelsTable">
+            <thead><tr><th>Hotel</th><th>Precio/Noche ($)</th><th>Ubicación</th></tr></thead>
+            <tbody id="hotelsBody"></tbody>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Pasajes de Aviones</h2>
+        <table id="flightsTable">
+            <thead><tr><th>Aerolínea</th><th>Precio ($)</th><th>Duración</th></tr></thead>
+            <tbody id="flightsBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const dataTemplates = {
+            tours: ["Tour Centro Histórico", "Excursión Montaña", "Visita Museos"],
+            food: ["Restaurante Italiano", "Café Local", "Comida Rápida"],
+            hotels: ["Hotel Centro", "Resort Playa", "Hostal Económico"],
+            flights: ["Airline A", "Airline B", "LowCost Airlines"]
+        };
+
+        let initialPrices = {};
+
+        function getSimulatedData(category) {
+            const results = [];
+            dataTemplates[category].forEach(item => {
+                const price = Math.floor(Math.random() * 200) + 20; // Precio entre 20-220
+                const extra = category === 'tours' ? `${Math.floor(Math.random() * 8) + 2} horas` :
+                             category === 'food' ? `${(Math.random() * 2 + 3).toFixed(1)} estrellas` :
+                             category === 'hotels' ? `Centro` : `${Math.floor(Math.random() * 10) + 5} horas`;
+                results.push({ name: item, price, extra });
+            });
+            return results.sort((a, b) => a.price - b.price);
+        }
+
+        function displayResults(category, results) {
+            const tbody = document.getElementById(`${category}Body`);
+            tbody.innerHTML = '';
+            results.forEach((result, index) => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = result.name;
+                row.insertCell(1).textContent = result.price;
+                row.insertCell(2).textContent = result.extra;
+                if (index === 0) row.classList.add('cheapest');
+            });
+            initialPrices[category] = results[0].price;
+        }
+
+        function planTrip() {
+            const dest = document.getElementById('destination').value;
+            if (!dest) { alert('Ingresa un destino.'); return; }
+            ['tours', 'food', 'hotels', 'flights'].forEach(cat => {
+                const results = getSimulatedData(cat);
+                displayResults(cat, results);
+            });
+            document.getElementById('alert').textContent = `⭐ Planificación completada para ${dest}. Mejores precios destacados.`;
+        }
+
+        function startMonitoring() {
+            document.getElementById('alert').textContent = 'Monitoreo iniciado. Actualizando precios cada 10 segundos...';
+            setInterval(() => {
+                ['tours', 'food', 'hotels', 'flights'].forEach(cat => {
+                    const newResults = getSimulatedData(cat);
+                    displayResults(cat, newResults);
+                    const newCheapest = newResults[0];
+                    if (initialPrices[cat] && newCheapest.price < initialPrices[cat]) {
+                        document.getElementById('alert').textContent = `🚨 Alerta: Precio bajó en ${cat}! Nueva mejor oferta: ${newCheapest.name} - $${newCheapest.price}`;
+                        initialPrices[cat] = newCheapest.price;
+                    }
+                });
+            }, 10000);
+        }
+    </script>
+</body>
+</html>
